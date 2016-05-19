@@ -4,9 +4,11 @@ import SplitPane from '../../lib/SplitPane';
 import Resizer from '../../lib/Resizer';
 import Pane from '../../lib/Pane';
 import chai from 'chai';
+import spies from 'chai-spies';
 const expect = chai.expect;
-import VendorPrefix from 'react-vendor-prefix';
 import ReactTestUtils from 'react-addons-test-utils';
+
+chai.use(spies);
 
 /**
  * getBoundingClientRect() does not work correctly with ReactTestUtils.renderIntoDocument().
@@ -51,15 +53,14 @@ export default (jsx, renderToDom = false) => {
 
 
     const assertStyles = (componentName, actualStyles, expectedStyles) => {
-        const prefixed = VendorPrefix.prefix({styles: expectedStyles}).styles;
-        for (let prop in prefixed) {
-            if (prefixed.hasOwnProperty(prop)) {
+        for (let prop in expectedStyles) {
+            if (expectedStyles.hasOwnProperty(prop)) {
                 //console.log(prop + ': \'' + actualStyles[prop] + '\',');
-                if (prefixed[prop] && prefixed[prop] !== '') {
+                if (expectedStyles[prop] && expectedStyles[prop] !== '') {
                     //console.log(prop + ': \'' + actualStyles[prop] + '\',');
-                    expect(actualStyles[prop]).to.equal(prefixed[prop], `${componentName} has incorrect css property for '${prop}'`);
+                    expect(actualStyles[prop]).to.equal(expectedStyles[prop], `${componentName} has incorrect css property for '${prop}'`);
                 }
-                //expect(actualStyles[prop]).to.equal(prefixed[prop], `${componentName} has incorrect css property for '${prop}'`);
+                //expect(actualStyles[prop]).to.equal(expectedStyles[prop], `${componentName} has incorrect css property for '${prop}'`);
             }
         }
         return this;
@@ -69,6 +70,12 @@ export default (jsx, renderToDom = false) => {
     const assertPaneStyles = (expectedStyles, paneString) => {
         const pane = findPaneByOrder(paneString);
         return assertStyles(`${paneString} Pane`, ReactDOM.findDOMNode(pane).style, expectedStyles);
+    };
+
+
+    const assertCallbacks = (expectedDragStartedCallback, expectedDragFinishedCallback) => {
+        expect(expectedDragStartedCallback).to.have.been.called();
+        expect(expectedDragFinishedCallback).to.have.been.called();
     };
 
 
@@ -107,11 +114,25 @@ export default (jsx, renderToDom = false) => {
         component.onMouseUp();
     };
 
+    const assertClass = (component, expectedClassName) => {
+        expect(ReactDOM.findDOMNode(component).className).to.contain(expectedClassName, `Incorrect className`);
+        return this;
+    };
 
     return {
         assertOrientation(expectedOrientation) {
             expect(ReactDOM.findDOMNode(component).className).to.contain(expectedOrientation, `Incorrect orientation`);
             return this;
+        },
+
+        assertSplitPaneClass(expectedClassName) {
+          assertClass(component, expectedClassName);
+        },
+
+
+        assertPaneClasses(expectedTopPaneClass, expectedBottomPaneClass) {
+            assertClass(findTopPane(), expectedTopPaneClass);
+            assertClass(findBottomPane(), expectedBottomPaneClass);
         },
 
 
@@ -145,6 +166,11 @@ export default (jsx, renderToDom = false) => {
         assertResizeByDragging(mousePositionDifference, expectedStyle) {
             simulateDragAndDrop(mousePositionDifference);
             return assertPaneStyles(expectedStyle, component.props.primary);
+        },
+
+        assertResizeCallbacks(expectedDragStartedCallback, expectedDragFinishedCallback) {
+            simulateDragAndDrop(200);
+            return assertCallbacks(expectedDragStartedCallback, expectedDragFinishedCallback);
         }
     }
 }
