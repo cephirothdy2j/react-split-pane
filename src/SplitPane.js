@@ -106,6 +106,7 @@ class SplitPane extends Component {
                 this.props.onDragFinished();
             }
         }
+        this.setState({active: false});
       }
     }
 
