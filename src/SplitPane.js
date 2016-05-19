@@ -140,7 +140,7 @@ class SplitPane extends Component {
             MozUserSelect: 'text',
             WebkitUserSelect: 'text',
             msUserSelect: 'text',
-            userSelect: 'text',
+            userSelect: 'text'
         };
 
         if (split === 'vertical') {
@@ -165,9 +165,8 @@ class SplitPane extends Component {
 
         const children = this.props.children;
         const classes = ['SplitPane', this.props.className, split, disabledClass];
-        const prefixed = VendorPrefix.prefix({styles: style});
         return (
-            <div className={classes.join(' ')} style={prefixed.styles} ref="splitPane">
+            <div className={classes.join(' ')} style={style} ref="splitPane">
                 <Pane ref="pane1" key="pane1" className="Pane1" split={split}>{children[0]}</Pane>
                 <Resizer
                     ref="resizer"
